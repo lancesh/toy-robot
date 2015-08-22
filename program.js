@@ -5,7 +5,7 @@ var debug = process.argv[2] === 'true';
 var myrobot = new ToyRobot(
 {
   debug: debug,
-  log: console.log
+  log: console.info
 });
 
 var stdin = process.openStdin();

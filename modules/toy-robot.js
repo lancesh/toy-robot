@@ -85,10 +85,12 @@ function ToyRobot(options) {
     this.position.direction = z;
   }
 
+  // Display current position
   this.report = function() {
     return this.position.x + ',' + this.position.y + ',' + this.position.direction;
   }
 
+  // Move in the current direction 1 unit
   this.move = function() {
     this.log('Moving ' + this.position.direction);
 
@@ -121,6 +123,7 @@ function ToyRobot(options) {
     return new Error('New position is out of range');
   }
 
+  // Rotate the robot 90 degrees in the chosen direction
   this.rotate = function(clockwise) {
     this.log('Rotating ' + (clockwise ? 'RIGHT' : 'LEFT'));
 
@@ -143,15 +146,18 @@ function ToyRobot(options) {
     this.position.direction = DIRECTIONS_CLOCKWISE[currentIndex];
   }
 
+  // Validate that the chosen position is within range
   this.validatePosition = function(x, y) {
     return (this.isInRange(x, RANGE_X.MIN, RANGE_X.MAX)
       && this.isInRange(y, RANGE_Y.MIN, RANGE_X.MAX));
   }
 
+  // Check the direction is allowed
   this.validateDirection = function(direction) {
     return DIRECTIONS_CLOCKWISE.indexOf(direction) != -1;
   }
 
+  // Validate a value within a range
   this.isInRange = function(actual, min, max) {
     return (actual >= min && actual <= max);
   }
