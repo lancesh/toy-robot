@@ -18,9 +18,9 @@ function readline(data) {
   var output = myrobot.processCommand(data);
   if(output != null) {
     if(output instanceof Error) {
-      console.log(output);
-    } else {
       console.error(output);
+    } else {
+      console.log(output);
     }
   }
 }
