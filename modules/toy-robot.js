@@ -53,12 +53,11 @@ function ToyRobot(options) {
   this.place = function (command) {
 
     if(command.length != 2)
-      return;
+      return new Error('Not enough arguments');
 
     var args = command[1].split(',');
     if(args.length != 3) {
-      this.log('Not enough arguments');
-      return;
+      return new Error('Not enough arguments');
     }
 
     var x = parseInt(args[0]);
@@ -67,20 +66,17 @@ function ToyRobot(options) {
 
     // Check for NaN
     if(isNaN(x) || isNaN(y)) {
-      this.log('Invalid input');
-      return;
+      return new Error('Invalid X,Y coordinates');
     }
 
     // Check for valid position
     if(!this.validatePosition(x, y)) {
-      this.log('Position out of valid range');
-      return;
+      return new Error('Position out of valid range');
     }
 
     // Check for valid direction
     if(!this.validateDirection(z)) {
-      this.log('Invalid direction');
-      return;
+      return new Error('Invalid Direction');
     }
 
     this.log('Placing at ', x, y, z);
@@ -113,8 +109,7 @@ function ToyRobot(options) {
         newX -= 1;
         break;
       default:
-        this.log("Invalid Direction");
-        return;
+        return new Error('Invalid direction');
     }
 
     if(this.validatePosition(newX, newY)) {
@@ -123,8 +118,7 @@ function ToyRobot(options) {
       return;
     }
 
-    this.log('New position is out of range')
-    return;
+    return new Error('New position is out of range');
   }
 
   this.rotate = function(clockwise) {
@@ -133,8 +127,7 @@ function ToyRobot(options) {
     var currentIndex = DIRECTIONS_CLOCKWISE.indexOf(this.position.direction);
 
     if(currentIndex == -1) {
-      this.log('Cannot rotate. Direction not set');
-      return;
+      return new Error('Cannot rotate. Direction not set');
     }
 
     if(clockwise) {
@@ -179,7 +172,7 @@ function ToyRobot(options) {
 ToyRobot.prototype.processCommand = function(data) {
 
   if(data == null) {
-    return;
+    return new Error('Data cannot be empty');
   }
   // Being a little lenient with leading/trailing whitespace
   var command = data.toString().trim().split(' ');
@@ -187,34 +180,29 @@ ToyRobot.prototype.processCommand = function(data) {
 
   // PLACE is always allowed
   if(verb == COMMANDS.PLACE) {
-    this.place(command);
+    return this.place(command);
   }
 
   // If position has not been set then no further commands can be received
   if(this.position.x == null)
-    return;
+    return new Error('Robot not placed. PLACE must be the first command.');
 
   // The remaining commands must have no arguments
   if(command.length != 1)
-    return;
+    return new Error('Parameters not allowed for specifed command.');
 
   switch(verb) {
     case COMMANDS.MOVE:
-      this.move();
-      break;
+      return this.move();
     case COMMANDS.LEFT:
-      this.rotate(false);
-      break;
+      return this.rotate(false);
     case COMMANDS.RIGHT:
-      this.rotate(true);
-      break;
+      return this.rotate(true);
     case COMMANDS.REPORT:
       return this.report();
     default:
-      this.log('Command ' + verb + ' not supported');
-      break;
+      return new Error('Command ' + verb + ' not supported');
   }
-  return;
 }
 
 module.exports = ToyRobot;

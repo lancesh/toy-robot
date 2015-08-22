@@ -89,9 +89,7 @@ describe('ToyRobot', function() {
   describe('#processCommand()', function () {
     it('should not allow any command before PLACE', function () {
       var thisRobot = new ToyRobot();
-      thisRobot.processCommand('MOVE');
-      var output = thisRobot.processCommand('REPORT');
-      assert.equal(output, null)
+      attemptInvalidCommand(thisRobot, 'MOVE', null);
     });
   });
 
@@ -108,25 +106,41 @@ describe('ToyRobot', function() {
   describe('#processCommand()', function () {
     it('should not allow placing out of range', function () {
       var thisRobot = new ToyRobot();
-      thisRobot.processCommand('PLACE 6,0,NORTH');
-      assert.equal(thisRobot.processCommand('REPORT'), null)
-      thisRobot.processCommand('PLACE -1,0,NORTH');
-      assert.equal(thisRobot.processCommand('REPORT'), null)
-      thisRobot.processCommand('PLACE 0,6,NORTH');
-      assert.equal(thisRobot.processCommand('REPORT'), null)
-      thisRobot.processCommand('PLACE 0,-1,NORTH');
-      assert.equal(thisRobot.processCommand('REPORT'), null)
+
+      attemptInvalidCommand(thisRobot,'PLACE 6,0,NORTH', null);
+      attemptInvalidCommand(thisRobot,'PLACE -1,0,NORTH');
+      attemptInvalidCommand(thisRobot,'PLACE 0,6,NORTH');
+      attemptInvalidCommand(thisRobot,'PLACE 0,-1,NORTH');
+
+      // Now a valid command
+      thisRobot.processCommand('PLACE 0,0,NORTH');
+
+      // Try invalid again
+      attemptInvalidCommand(thisRobot,'PLACE 6,0,NORTH', '0,0,NORTH');
     });
   });
 
   describe('#processCommand()', function () {
     it('should not allow invalid values', function () {
-      attemptInvalidPlace('x,0,NORTH',null);
-      attemptInvalidPlace(',0,NORTH',null);
-      attemptInvalidPlace('0,x,NORTH',null);
-      attemptInvalidPlace('0,,NORTH',null);
-      attemptInvalidPlace('',null);
-      attemptInvalidPlace('0,0,XX',null);
+
+      var thisRobot = new ToyRobot();
+
+      attemptInvalidPlace(thisRobot,'x,0,NORTH',null);
+      attemptInvalidPlace(thisRobot,',0,NORTH',null);
+      attemptInvalidPlace(thisRobot,'0,x,NORTH',null);
+      attemptInvalidPlace(thisRobot,'0,,NORTH',null);
+      attemptInvalidPlace(thisRobot,'',null);
+      attemptInvalidPlace(thisRobot,'0,0,XX',null);
+
+      // Now place correctly
+      thisRobot.processCommand('PLACE 0,0,NORTH');
+
+      attemptInvalidPlace(thisRobot,'x,0,NORTH','0,0,NORTH');
+      attemptInvalidPlace(thisRobot,',0,NORTH','0,0,NORTH');
+      attemptInvalidPlace(thisRobot,'0,x,NORTH','0,0,NORTH');
+      attemptInvalidPlace(thisRobot,'0,,NORTH','0,0,NORTH');
+      attemptInvalidPlace(thisRobot,'','0,0,NORTH');
+      attemptInvalidPlace(thisRobot,'0,0,XX','0,0,NORTH');
     });
   });
 
@@ -138,16 +152,23 @@ describe('ToyRobot', function() {
     assert.equal(output, start)
   }
 
-  function attemptInvalidPlace(place, expected) {
-    var thisRobot = new ToyRobot();
-    thisRobot.processCommand('PLACE ' + place);
-    var output = thisRobot.processCommand('REPORT');
-    assert.equal(output, expected)
+  function attemptInvalidPlace(thisRobot, place, expected) {
+    var output = thisRobot.processCommand('PLACE ' + place);
+    assert.equal(output instanceof Error, true);
+
+    if(expected != null) {
+      var output = thisRobot.processCommand('REPORT');
+      assert.equal(output, expected);
+    }
   }
 
   function attemptInvalidCommand(thisRobot, command, expected) {
-    thisRobot.processCommand(command);
-    var output = thisRobot.processCommand('REPORT');
-    assert.equal(output, expected)
+    var output = thisRobot.processCommand(command);
+    var report = thisRobot.processCommand('REPORT');
+    if(expected == null) {
+      assert.equal(output instanceof Error, true);
+    } else {
+      assert.equal(report, expected)
+    }
   }
 });
