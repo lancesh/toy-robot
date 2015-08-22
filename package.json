@@ -1,4 +1,5 @@
 {
+  "description": "Toy Robot Test",
   "dependencies": {
     "mocha": ">= 2.2.5",
     "bluebird": "latest"

@@ -1,3 +1,7 @@
+// A few constants
+// Note: I realise these are not truly constant, but unit testing
+// should ensure they are not accidentially modified by the application
+
 var COMMANDS = {
   PLACE: 'PLACE',
   MOVE: 'MOVE',
@@ -37,16 +41,25 @@ function ToyRobot(debug) {
     direction: null
   };
 
+  // Expects a command in the format "PLACE X,Y,F"
   this.place = function (command) {
-    // PLACE X,Y,F
+
+    if(command.length != 2)
+      return;
+
     var args = command[1].split(',');
-    var x = Number(args[0]);
-    var y = Number(args[1]);
+    if(args.length != 3) {
+      this.log('Not enough arguments');
+      return new Error('Not enough arguments');
+    }
+
+    var x = parseInt(args[0]);
+    var y = parseInt(args[1]);
     var z = args[2];
 
     // Check for NaN
     if(isNaN(x) || isNaN(y)) {
-      log('Invalid input');
+      this.log('Invalid input');
       return new Error('Invalid Input');
     }
 
@@ -69,8 +82,6 @@ function ToyRobot(debug) {
   }
 
   this.report = function() {
-    // TODO: Allow the caller to specify the stream
-    //console.log(position.x + ',' + position.y + ',' + position.direction);
     return this.position.x + ',' + this.position.y + ',' + this.position.direction;
   }
 
@@ -112,8 +123,7 @@ function ToyRobot(debug) {
 
     var currentIndex = DIRECTIONS_CLOCKWISE.indexOf(this.position.direction);
 
-    if(currentIndex == -1)     {
-      // TODO: Use / display
+    if(currentIndex == -1) {
       return new Error("Cannot rotate. Direction not set");
     }
 
@@ -153,15 +163,28 @@ function ToyRobot(debug) {
 // class methods
 ToyRobot.prototype.processCommand = function(data) {
 
+  if(data == null) {
+    return;
+  }
+  // Being a little lenient with leading/trailing whitespace
   var command = data.toString().trim().split(' ');
   var verb = command[0];
 
+  // PLACE is always allowed
+  if(verb == COMMANDS.PLACE) {
+    this.place(command);
+  }
+
+  // If position has not been set then no further commands can be received
+  if(this.position.x == null)
+    return;
+
+  // The remaining commands must have no arguments
+  if(command.length != 1)
+    return;
+
   switch(verb) {
-    case COMMANDS.PLACE:
-      this.place(command);
-      break;
     case COMMANDS.MOVE:
-      //TODO: Check there are no args
       this.move();
       break;
     case COMMANDS.LEFT:
@@ -172,7 +195,6 @@ ToyRobot.prototype.processCommand = function(data) {
       break;
     case COMMANDS.REPORT:
       return this.report();
-      break;
     default:
       this.log('Command ' + verb + ' not supported');
       break;
