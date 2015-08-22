@@ -1,3 +1,5 @@
+var extend = require('extend');
+
 // A few constants
 // Note: I realise these are not truly constant, but unit testing
 // should ensure they are not accidentially modified by the application
@@ -32,8 +34,14 @@ var TURNS = {
 var RANGE_X = {MIN:0,MAX:5};
 var RANGE_Y = {MIN:0,MAX:5};
 
-function ToyRobot(debug) {
-  this.debug = debug;
+function ToyRobot(options) {
+
+  var defaultOptions = {
+    debug: false,
+    log: null
+  };
+
+  this.options = extend({}, defaultOptions, options);
 
   this.position = {
     x:null,
@@ -50,7 +58,7 @@ function ToyRobot(debug) {
     var args = command[1].split(',');
     if(args.length != 3) {
       this.log('Not enough arguments');
-      return new Error('Not enough arguments');
+      return;
     }
 
     var x = parseInt(args[0]);
@@ -60,19 +68,19 @@ function ToyRobot(debug) {
     // Check for NaN
     if(isNaN(x) || isNaN(y)) {
       this.log('Invalid input');
-      return new Error('Invalid Input');
+      return;
     }
 
     // Check for valid position
     if(!this.validatePosition(x, y)) {
       this.log('Position out of valid range');
-      return new Error('Position out of valid range');
+      return;
     }
 
     // Check for valid direction
     if(!this.validateDirection(z)) {
       this.log('Invalid direction');
-      return new Error('Invalid direction');
+      return;
     }
 
     this.log('Placing at ', x, y, z);
@@ -105,7 +113,8 @@ function ToyRobot(debug) {
         newX -= 1;
         break;
       default:
-        return new Error("Invalid Direction");
+        this.log("Invalid Direction");
+        return;
     }
 
     if(this.validatePosition(newX, newY)) {
@@ -115,7 +124,7 @@ function ToyRobot(debug) {
     }
 
     this.log('New position is out of range')
-    return new Error("New positon is out of range");
+    return;
   }
 
   this.rotate = function(clockwise) {
@@ -124,7 +133,8 @@ function ToyRobot(debug) {
     var currentIndex = DIRECTIONS_CLOCKWISE.indexOf(this.position.direction);
 
     if(currentIndex == -1) {
-      return new Error("Cannot rotate. Direction not set");
+      this.log('Cannot rotate. Direction not set');
+      return;
     }
 
     if(clockwise) {
@@ -153,10 +163,15 @@ function ToyRobot(debug) {
     return (actual >= min && actual <= max);
   }
 
-  this.log = function(arg1, arg2, arg3) {
-    if(this.debug) {
-      console.log(arg1, arg2, arg3);
+  // Set up logging
+  if(this.options.debug) {
+    if(typeof this.options.log == 'function') {
+      this.log = this.options.log;
+    } else {
+      this.log = console.log;
     }
+  } else {
+    this.log = function() {};
   }
 }
 
